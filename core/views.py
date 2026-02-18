@@ -6,7 +6,7 @@ from django.shortcuts import redirect
 from core.models import GHLAuthCredentials
 from django.views.decorators.csrf import csrf_exempt
 import logging
-
+from core import services
 
 
 
@@ -73,6 +73,10 @@ def tokens(request):
         if not response_data:
             return
 
+        data = services.get_location_name(location_id=response_data.get("locationId"), access_token=response_data.get('access_token'))
+        location_data = data.get("location")
+
+
         obj, created = GHLAuthCredentials.objects.update_or_create(
             location_id= response_data.get("locationId"),
             defaults={
@@ -83,10 +87,13 @@ def tokens(request):
                 "user_type": response_data.get("userType"),
                 "company_id": response_data.get("companyId"),
                 "user_id":response_data.get("userId"),
-
+                "location_name":location_data.get("name"),
+                "timezone": location_data.get("timezone"),
+                "business_email":location_data.get("email"),
+                "business_phone":location_data.get("phone")
             }
         )
-
+    
         location_id = response_data.get("locationId")
         access_token = response_data.get("access_token")
         
